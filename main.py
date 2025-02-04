@@ -47,7 +47,8 @@ def classify_number():
         if number.is_integer():  
             number = int(number)  # Convert to integer if no decimal part
     except ValueError:
-        return jsonify({"number": number_str, "error": True}), 400  # Invalid input
+        # Return 200 OK with an error message if the number is invalid
+        return jsonify({"error": f"Invalid input: {number_str} is not a valid number."}), 200  
 
     # Calculate properties
     properties = []
