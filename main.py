@@ -43,17 +43,22 @@ def classify_number():
 
     # Check if the input is a valid number (integer or float)
     try:
-        number = float(number_str)  # Convert input to float
-        if number.is_integer():  
-            number = int(number)  # Convert to integer if no decimal part
+        # Convert input to float
+        number = float(number_str)
+        if number.is_integer():  # If the number is essentially an integer
+            number = int(number)
     except ValueError:
-        return jsonify({"number": number_str, "error": True}), 400  # Invalid input
+        # Return 400 for invalid number
+        return jsonify({"number": number_str, "error": True}), 400
 
-    # Calculate properties
+    # Now the number is valid, proceed with the classification
     properties = []
     if is_armstrong(number):
         properties.append("armstrong")
     properties.append("even" if number % 2 == 0 else "odd")
+
+    # Ensure fun_fact is always a string
+    fun_fact = f"{number} is an Armstrong number because ..." if "armstrong" in properties else "No fun fact available."
 
     response_data = {
         "number": number,
@@ -61,7 +66,7 @@ def classify_number():
         "is_perfect": is_perfect(number),  # Add perfect number check if needed
         "properties": properties,
         "digit_sum": get_digit_sum(number),  # Use the function here
-        "fun_fact": f"{number} is an Armstrong number because ..." if "armstrong" in properties else None
+        "fun_fact": fun_fact  # Always return a string for fun_fact
     }
 
     return jsonify(response_data), 200  # Always return 200 for valid numbers
