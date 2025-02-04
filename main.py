@@ -37,7 +37,6 @@ def get_digit_sum(number):
     return sum(int(digit) for digit in str(abs(int(number))))  # Ignore decimals and negative sign
 
 @app.route("/api/classify-number", methods=["GET"])
-@app.route("/api/classify-number", methods=["GET"])
 def classify_number():
     """Classify a given number quickly."""
     number_str = request.args.get("number", "").strip()
@@ -61,7 +60,7 @@ def classify_number():
         "is_prime": is_prime(number),
         "is_perfect": is_perfect(number),  # Add perfect number check if needed
         "properties": properties,
-        "digit_sum": sum(map(int, str(abs(int(number))))),  # Sum of digits (ignoring decimals)
+        "digit_sum": get_digit_sum(number),  # Use the function here
         "fun_fact": f"{number} is an Armstrong number because ..." if "armstrong" in properties else None
     }
 
