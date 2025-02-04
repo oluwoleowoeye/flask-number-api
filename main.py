@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
 import math
 from flask_compress import Compress  # For GZIP compression
 
@@ -10,9 +9,9 @@ Compress(app)  # Enable response compression
 
 def is_armstrong(number):
     """Check if a number is an Armstrong (Narcissistic) number."""
-    digits = list(map(int, str(number)))
-    power = len(digits)
-    return sum(d ** power for d in digits) == number
+    num_str = str(abs(int(number)))  # Convert to string, ignore negative sign
+    power = len(num_str)
+    return sum(int(d) ** power for d in num_str) == abs(number)
 
 def is_prime(number):
     """Check if a number is prime (optimized 6k ± 1 method)."""
@@ -29,26 +28,29 @@ def is_prime(number):
 
 def is_perfect(number):
     """Check if a number is a perfect number (sum of divisors equals the number)."""
-    if number < 2:
+    if number < 1:
         return False
     return sum(i for i in range(1, number) if number % i == 0) == number
 
 def get_digit_sum(number):
     """Calculate the sum of digits of a number."""
-    return sum(int(digit) for digit in str(number))
+    return sum(int(digit) for digit in str(abs(int(number))))  # Ignore decimals and negative sign
 
 @app.route("/api/classify-number", methods=["GET"])
 def classify_number():
     """Classify a number and return the required JSON format."""
-    number = request.args.get("number", "").strip()
+    number_str = request.args.get("number", "").strip()
 
-    if not number.isdigit():
+    # Validate input: Allow integers and floats
+    try:
+        number = float(number_str)  
+        if number.is_integer():  
+            number = int(number)  # Convert to integer if no decimal part
+    except ValueError:
         return jsonify({
-            "number": number,
+            "number": number_str,
             "error": True
         }), 400  # Bad request for invalid input
-
-    number = int(number)
 
     # Determine Armstrong status
     is_armstrong_num = is_armstrong(number)
