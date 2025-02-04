@@ -37,50 +37,35 @@ def get_digit_sum(number):
     return sum(int(digit) for digit in str(abs(int(number))))  # Ignore decimals and negative sign
 
 @app.route("/api/classify-number", methods=["GET"])
+@app.route("/api/classify-number", methods=["GET"])
 def classify_number():
-    """Classify a number and return the required JSON format."""
+    """Classify a given number quickly."""
     number_str = request.args.get("number", "").strip()
 
-    # Validate input: Allow integers and floats
+    # Check if the input is a valid number (integer or float)
     try:
-        number = float(number_str)  
+        number = float(number_str)  # Convert input to float
         if number.is_integer():  
             number = int(number)  # Convert to integer if no decimal part
     except ValueError:
-        return jsonify({
-            "number": number_str,
-            "error": True
-        }), 400  # Bad request for invalid input
+        return jsonify({"number": number_str, "error": True}), 400  # Invalid input
 
-    # Determine Armstrong status
-    is_armstrong_num = is_armstrong(number)
-    
-    # Determine even/odd status
-    is_even = number % 2 == 0
-
-    # Build properties list
-    if is_armstrong_num and is_even:
-        properties = ["armstrong", "even"]
-    elif is_armstrong_num and not is_even:
-        properties = ["armstrong", "odd"]
-    elif not is_armstrong_num and is_even:
-        properties = ["even"]
-    else:
-        properties = ["odd"]
-
-    digit_sum = get_digit_sum(number)
-    fun_fact = f"{number} is {'an Armstrong' if is_armstrong_num else 'not an Armstrong'} number."
+    # Calculate properties
+    properties = []
+    if is_armstrong(number):
+        properties.append("armstrong")
+    properties.append("even" if number % 2 == 0 else "odd")
 
     response_data = {
         "number": number,
         "is_prime": is_prime(number),
-        "is_perfect": is_perfect(number),
+        "is_perfect": is_perfect(number),  # Add perfect number check if needed
         "properties": properties,
-        "digit_sum": digit_sum,
-        "fun_fact": fun_fact
+        "digit_sum": sum(map(int, str(abs(int(number))))),  # Sum of digits (ignoring decimals)
+        "fun_fact": f"{number} is an Armstrong number because ..." if "armstrong" in properties else None
     }
 
-    return jsonify(response_data), 200  # Return a successful response
+    return jsonify(response_data), 200  # Always return 200 for valid numbers
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", threaded=True)  # Enable multi-threading
