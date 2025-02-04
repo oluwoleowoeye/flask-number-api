@@ -9,13 +9,13 @@ CORS(app)
 Compress(app)  # Enable response compression
 
 def is_armstrong(number):
-    """Efficient Armstrong (Narcissistic) number check."""
+    """Check if a number is an Armstrong (Narcissistic) number."""
     digits = list(map(int, str(number)))
     power = len(digits)
     return sum(d ** power for d in digits) == number
 
 def is_prime(number):
-    """Optimized prime check using 6k ± 1 optimization."""
+    """Check if a number is prime (optimized 6k ± 1 method)."""
     if number < 2:
         return False
     if number in (2, 3):
@@ -28,60 +28,57 @@ def is_prime(number):
     return True
 
 def is_perfect(number):
-    """Check if a number is a perfect number (sum of its proper divisors equals the number)."""
+    """Check if a number is a perfect number (sum of divisors equals the number)."""
     if number < 2:
         return False
-    divisors = [1] + [i for i in range(2, number // 2 + 1) if number % i == 0]
-    return sum(divisors) == number
+    return sum(i for i in range(1, number) if number % i == 0) == number
 
 def get_digit_sum(number):
-    """Calculate sum of the digits of a number."""
-    return sum(map(int, str(number)))
-
-def get_fun_fact(number):
-    """Fetch number trivia with a timeout for speed."""
-    try:
-        response = requests.get(f"http://numbersapi.com/{number}/math", timeout=0.4)
-        response.raise_for_status()
-        return response.text
-    except requests.RequestException:
-        return "No fun fact available at the moment."
+    """Calculate the sum of digits of a number."""
+    return sum(int(digit) for digit in str(number))
 
 @app.route("/api/classify-number", methods=["GET"])
 def classify_number():
-    """Classify a given number and return its properties."""
+    """Classify a number and return the required JSON format."""
     number = request.args.get("number", "").strip()
 
     if not number.isdigit():
         return jsonify({
             "number": number,
             "error": True
-        }), 400
-    
+        }), 400  # Bad request for invalid input
+
     number = int(number)
 
-    properties = []
-    if is_armstrong(number):
-        properties.append("armstrong")
-    if is_prime(number):
-        properties.append("prime")
-    if is_perfect(number):
-        properties.append("perfect")
-    if number % 2 == 0:
-        properties.append("even")
+    # Determine Armstrong status
+    is_armstrong_num = is_armstrong(number)
+    
+    # Determine even/odd status
+    is_even = number % 2 == 0
+
+    # Build properties list
+    if is_armstrong_num and is_even:
+        properties = ["armstrong", "even"]
+    elif is_armstrong_num and not is_even:
+        properties = ["armstrong", "odd"]
+    elif not is_armstrong_num and is_even:
+        properties = ["even"]
     else:
-        properties.append("odd")
+        properties = ["odd"]
+
+    digit_sum = get_digit_sum(number)
+    fun_fact = f"{number} is {'an Armstrong' if is_armstrong_num else 'not an Armstrong'} number."
 
     response_data = {
         "number": number,
         "is_prime": is_prime(number),
         "is_perfect": is_perfect(number),
         "properties": properties,
-        "digit_sum": get_digit_sum(number),
-        "fun_fact": get_fun_fact(number)
+        "digit_sum": digit_sum,
+        "fun_fact": fun_fact
     }
 
-    return jsonify(response_data), 200
+    return jsonify(response_data), 200  # Return a successful response
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", threaded=True)  # Enable multi-threading
